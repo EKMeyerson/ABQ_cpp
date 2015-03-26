@@ -66,7 +66,8 @@ void RecurrentNetwork::Step () {
     }
     
     for (int i = 0; i < num_units_; i++) {
-        activation_[i+input_end_] = tanh(updated_activation[i]);
+        //activation_[i+input_end_] = tanh(updated_activation[i]);
+        activation_[i+input_end_] = 1.0/(1.0+exp(-updated_activation[i]));
     }
 }
 
