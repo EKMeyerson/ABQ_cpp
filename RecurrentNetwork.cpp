@@ -12,7 +12,7 @@
 
 RecurrentNetwork::RecurrentNetwork() {
     
-    int num_input = 24;
+    int num_input = 16;
     int num_hidden = 2;
     int num_output = 3;
     
