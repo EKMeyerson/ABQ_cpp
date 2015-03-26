@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
     for (int i = 0; i < 1000000; i++) {
         if (i % 100 == 0) {
             printf ("%d %f %f \n",i,ne.best_fitness(),ne.avg_fitness());
-            outfile.open("/Users/ekmeyerson/Research/NNLab/ABQ_cpp/ABQ_cpp/replica.non_deceptive.results", std::ios::app);
+            outfile.open("replica1.non_deceptive.results", std::fstream::app | std::fstream::out);
             outfile << i << ' ' << ne.best_fitness() << ' ' << ne.avg_fitness() << "\n";
             outfile.close();
         }
