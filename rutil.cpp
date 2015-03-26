@@ -9,6 +9,7 @@
 #include "rutil.h"
 #include <iostream>
 
+
 namespace rutil {
     
 std::mt19937_64 & global_urng( ) {
