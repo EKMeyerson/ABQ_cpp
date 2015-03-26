@@ -119,8 +119,8 @@ void Tartarus::ClearBoard() {
 vector<int> Tartarus::RandomInnerCell() {
     
     while (true) {
-        int x = rutil::pick_a_number(2, size_);
-        int y = rutil::pick_a_number(2, size_);
+        int x = rutil::pick_a_number(2, size_-1);
+        int y = rutil::pick_a_number(2, size_-1);
         if (board_[x][y] == EMPTY) {
             vector<int> cell(2);
             cell[0] = x;
