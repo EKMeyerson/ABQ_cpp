@@ -12,7 +12,7 @@
 
 RecurrentNetwork::RecurrentNetwork() {
     
-    int num_input = 16;
+    int num_input = 8;
     int num_hidden = 2;
     int num_output = 3;
     
@@ -66,8 +66,8 @@ void RecurrentNetwork::Step () {
     }
     
     for (int i = 0; i < num_units_; i++) {
-        //activation_[i+input_end_] = tanh(updated_activation[i]);
-        activation_[i+input_end_] = 1.0/(1.0+exp(-updated_activation[i]));
+        activation_[i+input_end_] = tanh(updated_activation[i]);
+        //activation_[i+input_end_] = 1.0/(1.0+exp(-2*updated_activation[i]));
     }
 }
 

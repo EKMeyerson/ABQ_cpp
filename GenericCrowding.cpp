@@ -21,7 +21,7 @@ GenericCrowding::GenericCrowding(Tartarus &task) {
     tournament_size_ = 10;
     population_size_ = 100;
     
-    genome_size_ = (16+1+5)*5;
+    genome_size_ = (8+1+5)*5;
     action_history_size_ = 80*100;
     
     curr_iteration_ = 0;

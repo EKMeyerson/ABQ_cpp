@@ -26,7 +26,7 @@ Tartarus::Tartarus() {
     curr_config_ = 0;
     
     fitness_ = 0;
-    sensors_.resize(16);
+    sensors_.resize(8);
     
     InitBoard();
     InitScoreLocations();
@@ -261,16 +261,13 @@ void Tartarus::UpdateSensors() {
 
 void Tartarus::UpdateSensor(int sensor_num, int x, int y) {
     
-    int sensor_start = sensor_num*2;
+    int sensor_start = sensor_num;
     if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 0.0;
-        sensors_[sensor_start+1] = 0.0;
     } else if (board_[x][y] == WALL) {
         sensors_[sensor_start] = 1.0;
-        sensors_[sensor_start+1] = 0.0;
     } else if (board_[x][y] == BRICK) {
-        sensors_[sensor_start] = 0.0;
-        sensors_[sensor_start+1] = 1.0;
+        sensors_[sensor_start] = 1.0;
     }
 }
 
