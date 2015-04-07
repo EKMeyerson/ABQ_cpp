@@ -21,7 +21,7 @@ GenericCrowding::GenericCrowding(Tartarus &task) {
     tournament_size_ = 10;
     population_size_ = 100;
     
-    genome_size_ = (8+1+5)*5;
+    genome_size_ = (16+1+5)*5;
     action_history_size_ = 80*100;
     
     curr_iteration_ = 0;
@@ -113,7 +113,6 @@ int GenericCrowding::TournamentSelect() {
             winner = j;
         }
     }
-
     return winner;
 }
 
@@ -163,7 +162,7 @@ void GenericCrowding::Replace(int loser, int winner) {
     }
     total_fitness_ -= population_[loser].fitness;
     total_fitness_ += population_[winner].fitness;
-    Individual tmp = population_[loser];
+    static Individual tmp = population_[loser];
     population_[loser] = population_[winner];
     population_[winner] = tmp;
 }

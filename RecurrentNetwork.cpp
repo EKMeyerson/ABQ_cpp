@@ -12,7 +12,7 @@
 
 RecurrentNetwork::RecurrentNetwork() {
     
-    int num_input = 8;
+    int num_input = 16;
     int num_hidden = 2;
     int num_output = 3;
     
@@ -32,7 +32,12 @@ void RecurrentNetwork::SetWeights(const vector<double> &genome) {
     for (int i = 0; i < genome.size(); i++) {
         //std::cout << genome[i];
         //std::cout << "\n";
+        //std::cout << i/num_units_;
+        //std::cout << ' ';
+        //std::cout << i%num_units_;
+        //std::cout << '\n';
         weights_[i/num_units_][i%num_units_] = genome[i];
+        
     }
 }
 

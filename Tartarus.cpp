@@ -26,7 +26,7 @@ Tartarus::Tartarus() {
     curr_config_ = 0;
     
     fitness_ = 0;
-    sensors_.resize(8);
+    sensors_.resize(16);
     
     InitBoard();
     InitScoreLocations();
@@ -247,27 +247,31 @@ void Tartarus::Forward() {
 
 void Tartarus::UpdateSensors() {
     
+    int localCoords[8][2] =
+    {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
+    
     int x = agent_x_;
     int y = agent_y_;
-    UpdateSensor(0,x,y+1);
-    UpdateSensor(1,x+1,y+1);
-    UpdateSensor(2,x+1,y);
-    UpdateSensor(3,x+1,y-1);
-    UpdateSensor(4,x,y-1);
-    UpdateSensor(5,x-1,y-1);
-    UpdateSensor(6,x-1,y);
-    UpdateSensor(7,x-1,y+1);
+    int currSensor = 2*agent_orientation_;
+    
+    for (int i = 0; i < 8; i++) {
+        UpdateSensor(i,x+localCoords[currSensor][0],y+localCoords[currSensor][1]);
+        currSensor = (currSensor + 1) % 8;
+    }
 }
 
 void Tartarus::UpdateSensor(int sensor_num, int x, int y) {
     
-    int sensor_start = sensor_num;
+    int sensor_start = 2*sensor_num;
     if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 0.0;
+        sensors_[sensor_start+1] = 0.0;
     } else if (board_[x][y] == WALL) {
         sensors_[sensor_start] = 1.0;
+        sensors_[sensor_start+1] = 0.0;
     } else if (board_[x][y] == BRICK) {
-        sensors_[sensor_start] = 1.0;
+        sensors_[sensor_start] = 0.0;
+        sensors_[sensor_start+1] = 1.0;
     }
 }
 
@@ -291,6 +295,8 @@ void Tartarus::UpdateFitness() {
         //std::cout << score_locations_[i][1];
         if (board_[score_locations_[i][0]][score_locations_[i][1]] == BRICK) {
             config_fitness++;
+            //config_fitness++;
+            //config_fitness++;
         }
     }
     
