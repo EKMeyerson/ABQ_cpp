@@ -263,6 +263,7 @@ void Tartarus::UpdateSensors() {
 void Tartarus::UpdateSensor(int sensor_num, int x, int y) {
     
     int sensor_start = 2*sensor_num;
+    /**
     if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 0.0;
         sensors_[sensor_start+1] = 0.0;
@@ -273,6 +274,19 @@ void Tartarus::UpdateSensor(int sensor_num, int x, int y) {
         sensors_[sensor_start] = 0.0;
         sensors_[sensor_start+1] = 1.0;
     }
+    **/
+    if (x > size_-1 or x < 2 or y > size_-1 or y < 2) {
+        sensors_[sensor_start] = 1.0;
+    } else {
+        sensors_[sensor_start] = 0.0;
+    }
+    
+    if (board_[x][y] == BRICK) {
+        sensors_[sensor_start+1] = 1.0;
+    } else {
+        sensors_[sensor_start+1] = 0.0;
+    }
+    
 }
 
 void Tartarus::UpdateFitness() {
