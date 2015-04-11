@@ -12,19 +12,22 @@
 #include <fstream>
 #include <stdio.h>
 #include "rutil.h"
+#include "distances.h"
 
 int main(int argc, const char * argv[]) {
     
     rutil::randomize();
     Tartarus task{};
-    GenericCrowding ne(task);
+    
+    //double (*dist) (vector<double>&,vector<double>&) = distances::hamming;
+    GenericCrowding ne(task,distances::hamming);
     
     std::fstream outfile;
     
     for (int i = 0; i < 1000000; i++) {
         if (i % 100 == 0) {
             printf ("%d %f %f \n",i,ne.best_fitness(),ne.avg_fitness());
-            outfile.open("replica1.non_deceptive.results", std::fstream::app | std::fstream::out);
+            outfile.open("/Users/ekmeyerson/Research/NNLab/ABQ_cpp/ABQ_cpp/replica1.non_deceptive.results", std::fstream::app | std::fstream::out);
             outfile << i << ' ' << ne.best_fitness() << ' ' << ne.avg_fitness() << "\n";
             outfile.close();
         }

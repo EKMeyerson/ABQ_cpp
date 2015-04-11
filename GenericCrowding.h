@@ -18,49 +18,63 @@ using std::vector;
 
 struct Individual {
     vector<double> genome;
-    vector<int> action_history;
-    vector<int> behavior;
-    int fitness;
+    vector<double> action_history;
+    vector<double> behavior;
+    double fitness;
 };
 
 
 class GenericCrowding {
     
-    static const int MIN_FITNESS = -1000000;
-    static const int MAX_DISTANCE = 1000000;
+    static const long MIN_FITNESS = -1000000;
+    static const long MAX_DISTANCE = 1000000;
     
     // Configuration parameters
-    int num_iterations_;
+    long num_iterations_;
     double mutation_rate_;
-    int tournament_size_;
-    int population_size_;
-    int genome_size_;
-    int action_history_size_;
+    long tournament_size_;
+    long population_size_;
+    long genome_size_;
+    long action_history_size_;
+    //double (*SelectDist) (vector<double>&,vector<double>&);
+    double (*ReplaceDist) (vector<double>&,vector<double>&);
     
     // State information
     Tartarus task_;
     vector<Individual> population_;
     RecurrentNetwork brain_;
-    int curr_iteration_;
+    long curr_iteration_;
     double total_fitness_;
     double best_fitness_;
-    int childA_;
-    int childB_;
+    long childA_;
+    long childB_;
     
-    // Evolution methods
+    // Evolution methods (long params refer to Indivs index in population)
     void InitPopulation();
-    void RandomIndividual(int);
-    int TournamentSelect();
-    void Crossover(int,int);
-    void Mutate(int);
-    void Evaluate(int);
-    int CrowdingSelect(int);
-    void Replace(int,int);
+    void RandomIndividual(long);
+    long TournamentSelect();
+    void Crossover(long,long);
+    void Mutate(long);
+    void Evaluate(long);
+    void (*UpdateBehavior) (long);
+    long (*ReplaceSelect) (long);
+    void Replace(long,long);
     double RandomWeight();
-    int HammingDistance(int,int);
+    long HammingDistance(long,long);
+    
+    // Options for parent and replacement selection
+    long CrowdingSelect(long);
+    long RandomSelect (long);
+    long WorstSelect (long);
+    
+    // Options for behavior quantification
+    void UpdateBehaviorActionHistory (long);
+    void UpdateBehaviorFitness (long);
+    void UpdateBehaviorEventCounts (long);
+    
     
 public:
-    GenericCrowding(Tartarus&);
+    GenericCrowding(Tartarus&, double (*) (vector<double>&,vector<double>&));
     void Next();
     double best_fitness();
     double avg_fitness();

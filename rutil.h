@@ -15,7 +15,7 @@ namespace rutil {
     
     void randomize( );
     
-    int pick_a_number( int from, int thru );
+    long pick_a_number( long from, long thru );
     
     double pick_a_number( double from, double upto );
 

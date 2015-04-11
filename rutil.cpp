@@ -22,8 +22,8 @@ void randomize( ) {
     global_urng().seed( rd() );
 }
 
-int pick_a_number( int from, int thru ) {
-    static std::uniform_int_distribution<> d{};
+long pick_a_number( long from, long thru ) {
+    static std::uniform_int_distribution<long long> d{};
     using parm_t = decltype(d)::param_type;
     //std::cout << d( global_urng(), parm_t{from, thru} );
     return d( global_urng(), parm_t{from, thru} );

@@ -26,16 +26,16 @@ Tartarus::Tartarus() {
     curr_config_ = 0;
     
     fitness_ = 0;
-    sensors_.resize(16);
+    sensors_.resize(24);
     
     InitBoard();
     InitScoreLocations();
     
     // Each config contains starting location of brick and agent
     configs_.resize(num_configs_);
-    for (int i = 0; i < num_configs_; i++) {
+    for (long i = 0; i < num_configs_; i++) {
         configs_[i].resize(num_bricks_+1);
-        for (int j = 0; j < num_bricks_+1; j++) {
+        for (long j = 0; j < num_bricks_+1; j++) {
             configs_[i][j].resize(2);
         }
     }
@@ -46,17 +46,17 @@ void Tartarus::InitBoard() {
     
     // Construct Board
     board_.resize(size_+2);
-    for (int i = 0; i < size_+2; i++) {
+    for (long i = 0; i < size_+2; i++) {
         board_[i].resize(size_+2);
     }
     
     // Top and bottom walls
-    for (int i = 0; i < size_+2; i++) {
+    for (long i = 0; i < size_+2; i++) {
         board_[i][size_+1] = WALL;
         board_[i][0] = WALL;
     }
     // Side walls
-    for (int i = 1; i < size_+1; i++) {
+    for (long i = 1; i < size_+1; i++) {
         board_[0][i] = WALL;
         board_[size_+1][i] = WALL;
     }
@@ -65,7 +65,7 @@ void Tartarus::InitBoard() {
 void Tartarus::InitScoreLocations() {
     
     score_locations_.resize(num_score_loc_);
-    for (int i = 0; i < num_score_loc_; i++){
+    for (long i = 0; i < num_score_loc_; i++){
         score_locations_[i].resize(2);
     }
     SetDefaultScoreLocations();
@@ -88,11 +88,11 @@ void Tartarus::SetDefaultScoreLocations() {
 
 void Tartarus::InitConfigs() {
     
-    int configs_generated = 0;
+    long configs_generated = 0;
     while (configs_generated < num_configs_) {
         ClearBoard();
-        vector<int> cell;
-        for (int i = 0; i < num_bricks_; i++) {
+        vector<long> cell;
+        for (long i = 0; i < num_bricks_; i++) {
             cell = RandomInnerCell();
             board_[cell[0]][cell[1]] = BRICK;
             configs_[configs_generated][i][0] = cell[0];
@@ -109,20 +109,20 @@ void Tartarus::InitConfigs() {
 
 void Tartarus::ClearBoard() {
     
-    for (int i = 1; i < size_+1; i++) {
-        for (int j = 1; j < size_+1; j++) {
+    for (long i = 1; i < size_+1; i++) {
+        for (long j = 1; j < size_+1; j++) {
             board_[i][j] = EMPTY;
         }
     }
 }
 
-vector<int> Tartarus::RandomInnerCell() {
+vector<long> Tartarus::RandomInnerCell() {
     
     while (true) {
-        int x = rutil::pick_a_number(2, size_-1);
-        int y = rutil::pick_a_number(2, size_-1);
+        long x = rutil::pick_a_number(2, size_-1);
+        long y = rutil::pick_a_number(2, size_-1);
         if (board_[x][y] == EMPTY) {
-            vector<int> cell(2);
+            vector<long> cell(2);
             cell[0] = x;
             cell[1] = y;
             return cell;
@@ -132,8 +132,8 @@ vector<int> Tartarus::RandomInnerCell() {
 
 bool Tartarus::ValidBoard() {
     
-    for (int x = 1; x < size_; x++) {
-        for (int y = 1; y < size_; y++) {
+    for (long x = 1; x < size_; x++) {
+        for (long y = 1; y < size_; y++) {
             if (board_[x][y] == BRICK &&
                 board_[x+1][y] == BRICK &&
                 board_[x][y+1] == BRICK &&
@@ -154,14 +154,13 @@ void Tartarus::Reset() {
     fitness_ = 0;
     curr_config_ = 0;
     NextConfig();
-    agent_orientation_ = NORTH;
 }
 
 void Tartarus::NextConfig() {
     
     ClearBoard();
-    vector<int> cell;
-    for (int i = 0; i < num_bricks_; i++) {
+    vector<long> cell;
+    for (long i = 0; i < num_bricks_; i++) {
         cell = configs_[curr_config_][i];
         board_[cell[0]][cell[1]] = BRICK;
     }
@@ -169,18 +168,22 @@ void Tartarus::NextConfig() {
     agent_x_ = cell[0];
     agent_y_ = cell[1];
     curr_step_ = 0;
+    agent_orientation_ = NORTH;
+    UpdateSensors();
 }
 
 vector<double>& Tartarus::Sense() { return sensors_; }
 
-void Tartarus::Act(int action) {
+void Tartarus::Act(long action) {
     
     if (action == FORWARD) {
         Forward();
     } else if (action == LEFT) {
         agent_orientation_ = (agent_orientation_ + 3) % 4;
+        UpdateSensors();
     } else if (action == RIGHT) {
         agent_orientation_ = (agent_orientation_ + 1) % 4;
+        UpdateSensors();
     }
     
     curr_step_++;
@@ -194,8 +197,8 @@ void Tartarus::Act(int action) {
 void Tartarus::Forward() {
     
     // Get cell in front of agent
-    int x1;
-    int y1;
+    long x1;
+    long y1;
     if (agent_orientation_ == NORTH) {
         x1 = agent_x_;
         y1 = agent_y_+1;
@@ -219,7 +222,7 @@ void Tartarus::Forward() {
     } else if (board_[x1][y1] == BRICK) {
         
         // Get cell two ahead of agent
-        int x2,y2;
+        long x2,y2;
         if (agent_orientation_ == NORTH) {
             x2 = agent_x_;
             y2 = agent_y_+2;
@@ -247,63 +250,73 @@ void Tartarus::Forward() {
 
 void Tartarus::UpdateSensors() {
     
-    int localCoords[8][2] =
+    long localCoords[8][2] =
     {{0,1},{1,1},{1,0},{1,-1},{0,-1},{-1,-1},{-1,0},{-1,1}};
     
-    int x = agent_x_;
-    int y = agent_y_;
-    int currSensor = 2*agent_orientation_;
+    long x = agent_x_;
+    long y = agent_y_;
+    long currSensor = 2*agent_orientation_;
     
-    for (int i = 0; i < 8; i++) {
+    for (long i = 0; i < 8; i++) {
         UpdateSensor(i,x+localCoords[currSensor][0],y+localCoords[currSensor][1]);
         currSensor = (currSensor + 1) % 8;
     }
 }
 
-void Tartarus::UpdateSensor(int sensor_num, int x, int y) {
+void Tartarus::UpdateSensor(long sensor_num, long x, long y) {
     
-    int sensor_start = 2*sensor_num;
+    long sensor_start = 3*sensor_num;
     /**
     if (board_[x][y] == EMPTY) {
-        sensors_[sensor_start] = 0.0;
-        sensors_[sensor_start+1] = 0.0;
-    } else if (board_[x][y] == WALL) {
         sensors_[sensor_start] = 1.0;
         sensors_[sensor_start+1] = 0.0;
-    } else if (board_[x][y] == BRICK) {
+        sensors_[sensor_start+2] = 0.0;
+    } else if (board_[x][y] == WALL) {
         sensors_[sensor_start] = 0.0;
         sensors_[sensor_start+1] = 1.0;
+        sensors_[sensor_start+2] = 0.0;
+    } else if (board_[x][y] == BRICK) {
+        sensors_[sensor_start] = 0.0;
+        sensors_[sensor_start+1] = 0.0;
+        sensors_[sensor_start+2] = 1.0;
     }
     **/
-    if (x > size_-1 or x < 2 or y > size_-1 or y < 2) {
+    if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 1.0;
     } else {
         sensors_[sensor_start] = 0.0;
+    }
+    
+    if ((x > size_-1) or (x < 2) or (y > size_-1) or (y < 2)) {
+        sensors_[sensor_start+1] = 1.0;
+    } else {
+        sensors_[sensor_start+1] = 0.0;
     }
     
     if (board_[x][y] == BRICK) {
-        sensors_[sensor_start+1] = 1.0;
+        sensors_[sensor_start+2] = 1.0;
     } else {
-        sensors_[sensor_start+1] = 0.0;
+        sensors_[sensor_start+2] = 0.0;
     }
+    
     
 }
 
 void Tartarus::UpdateFitness() {
     
-    int config_fitness = 0;
+    long config_fitness = 0;
     // Check against top and bottom walls
-    for (int i = 1; i < size_+1; i++) {
+    for (long i = 1; i < size_+1; i++) {
         if (board_[i][1] == BRICK) { config_fitness++; }
         if (board_[i][size_] == BRICK) { config_fitness++; }
     }
     // Check against side walls
-    for (int i = 2; i < size_; i++) {
+    for (long i = 2; i < size_; i++) {
         if (board_[1][i] == BRICK) { config_fitness++; }
         if (board_[size_][i] == BRICK) { config_fitness++; }
     }
     // Check score locations
-    for (int i = 0; i < num_score_loc_; i++) {
+    for (long i = 0; i < num_score_loc_; i++) {
         //std::cout << toString();
         //std::cout << score_locations_[i][0];
         //std::cout << score_locations_[i][1];
@@ -325,14 +338,14 @@ void Tartarus::UpdateFitness() {
 
 bool Tartarus::Done() { return curr_config_ == num_configs_; }
 
-int Tartarus::fitness() { return fitness_; }
+long Tartarus::fitness() { return fitness_; }
 
 std::string Tartarus::toString() {
     
     std::string s;
-    for (int y = size_+1; y > -1; y--) {
+    for (long y = size_+1; y > -1; y--) {
         s.append("\n");
-        for (int x = 0; x < size_+2; x++) {
+        for (long x = 0; x < size_+2; x++) {
             if (board_[x][y] == WALL) {
                 s.append("|");
             } else if (board_[x][y] == BRICK) {
@@ -349,7 +362,7 @@ std::string Tartarus::toString() {
                 }
             } else {
                 bool is_score_location = false;
-                for (int i = 0; i < num_score_loc_; i++) {
+                for (long i = 0; i < num_score_loc_; i++) {
                     if (score_locations_[i][0] == x && 
                         score_locations_[i][1] == y) {
                         s.append("X");
@@ -362,26 +375,26 @@ std::string Tartarus::toString() {
         }
         s.append("\n");
     }
-    //for (int x = 0; x < size_+2; x++) { s.append(to_string(x)); }
+    //for (long x = 0; x < size_+2; x++) { s.append(to_string(x)); }
     s.append("\n\n");
     return s;
 }
 
 // Cell states
-const int Tartarus::EMPTY = 0;
-const int Tartarus::WALL = 1;
-const int Tartarus::BRICK = 2;
+const long Tartarus::EMPTY = 0;
+const long Tartarus::WALL = 1;
+const long Tartarus::BRICK = 2;
 
 // Actions
-const int Tartarus::FORWARD = 0;
-const int Tartarus::LEFT = 1;
-const int Tartarus::RIGHT = 2;
+const long Tartarus::FORWARD = 0;
+const long Tartarus::LEFT = 1;
+const long Tartarus::RIGHT = 2;
 
 // Orientation
-const int Tartarus::NORTH = 0;
-const int Tartarus::EAST = 1;
-const int Tartarus::SOUTH = 2;
-const int Tartarus::WEST = 3;
+const long Tartarus::NORTH = 0;
+const long Tartarus::EAST = 1;
+const long Tartarus::SOUTH = 2;
+const long Tartarus::WEST = 3;
 
 
 

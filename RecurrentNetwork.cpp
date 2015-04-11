@@ -12,8 +12,8 @@
 
 RecurrentNetwork::RecurrentNetwork() {
     
-    int num_input = 16;
-    int num_hidden = 2;
+    int num_input = 24;
+    int num_hidden = 7;
     int num_output = 3;
     
     input_end_ = num_input + 1;
@@ -22,6 +22,7 @@ RecurrentNetwork::RecurrentNetwork() {
     num_nodes_ = output_start_ + num_output;
     
     activation_.resize(num_nodes_);
+    activation_[0] = 1.0;
     weights_.resize(num_nodes_);
     for (int i = 0; i < num_nodes_; i++) {
         weights_[i].resize(num_units_);
@@ -71,9 +72,14 @@ void RecurrentNetwork::Step () {
     }
     
     for (int i = 0; i < num_units_; i++) {
-        activation_[i+input_end_] = tanh(updated_activation[i]);
-        //activation_[i+input_end_] = 1.0/(1.0+exp(-2*updated_activation[i]));
+        //activation_[i+input_end_] = tanh(updated_activation[i]);
+        activation_[i+input_end_] = 1.0/(1.0+exp(-updated_activation[i]));
     }
+    
+    //std::cout << '\n';
+    //for (int j = 0; j < activation_.size(); j++) {
+    //    std::cout << activation_[j] << '\n';
+    //}
 }
 
 void RecurrentNetwork::Flush () {
