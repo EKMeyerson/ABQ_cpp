@@ -26,7 +26,7 @@ Tartarus::Tartarus() {
     curr_config_ = 0;
     
     fitness_ = 0;
-    sensors_.resize(24);
+    sensors_.resize(16);
     
     InitBoard();
     InitScoreLocations();
@@ -138,14 +138,14 @@ bool Tartarus::ValidBoard() {
                 board_[x+1][y] == BRICK &&
                 board_[x][y+1] == BRICK &&
                 board_[x+1][y+1] == BRICK) {
-                std::cout << "Invalid: \n";
-                std::cout << toString();
+                //std::cout << "Invalid: \n";
+                //std::cout << toString();
                 return false;
             }
         }
     }
-    std::cout << "Valid: \n";
-    std::cout << toString();
+    //std::cout << "Valid: \n";
+    //std::cout << toString();
     return true;
 }
 
@@ -212,7 +212,7 @@ void Tartarus::Forward() {
         x1 = agent_x_-1;
         y1 = agent_y_;
     } else {
-        std::cout << "HERE";
+        throw std::invalid_argument("Illegal action.");
     }
     
     if (board_[x1][y1] == EMPTY) {
@@ -265,7 +265,7 @@ void Tartarus::UpdateSensors() {
 
 void Tartarus::UpdateSensor(long sensor_num, long x, long y) {
     
-    long sensor_start = 3*sensor_num;
+    long sensor_start = 2*sensor_num;
     /**
     if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 1.0;
@@ -281,22 +281,25 @@ void Tartarus::UpdateSensor(long sensor_num, long x, long y) {
         sensors_[sensor_start+2] = 1.0;
     }
     **/
+    /**
     if (board_[x][y] == EMPTY) {
         sensors_[sensor_start] = 1.0;
     } else {
         sensors_[sensor_start] = 0.0;
     }
+    **/
     
-    if ((x > size_-1) or (x < 2) or (y > size_-1) or (y < 2)) {
-        sensors_[sensor_start+1] = 1.0;
+    //if ((x > size_-1) or (x < 2) or (y > size_-1) or (y < 2)) {
+    if (board_[x][y] == WALL) {
+        sensors_[sensor_start] = 1.0;
     } else {
-        sensors_[sensor_start+1] = 0.0;
+        sensors_[sensor_start] = 0.0;
     }
     
     if (board_[x][y] == BRICK) {
-        sensors_[sensor_start+2] = 1.0;
+        sensors_[sensor_start+1] = 1.0;
     } else {
-        sensors_[sensor_start+2] = 0.0;
+        sensors_[sensor_start+1] = 0.0;
     }
     
     

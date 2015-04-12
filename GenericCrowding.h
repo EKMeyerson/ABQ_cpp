@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "RecurrentNetwork.h"
 #include "Tartarus.h"
+#include "distances.h"
 //#include <random>
 
 using std::vector;
@@ -18,7 +19,7 @@ using std::vector;
 
 struct Individual {
     vector<double> genome;
-    vector<double> action_history;
+    vector< vector< vector<double> > > history;
     vector<double> behavior;
     double fitness;
 };
@@ -28,16 +29,23 @@ class GenericCrowding {
     
     static const long MIN_FITNESS = -1000000;
     static const long MAX_DISTANCE = 1000000;
+    static const long MAX_FITNESS = 1000000;
     
     // Configuration parameters
     long num_iterations_;
     double mutation_rate_;
     long tournament_size_;
     long population_size_;
+    long num_actuators_;
+    long num_sensors_;
+    long num_input_;
+    long num_hidden_;
+    long num_output_;
+    long num_nodes_;
     long genome_size_;
-    long action_history_size_;
+    long history_size_;
     //double (*SelectDist) (vector<double>&,vector<double>&);
-    double (*ReplaceDist) (vector<double>&,vector<double>&);
+
     
     // State information
     Tartarus task_;
@@ -56,11 +64,13 @@ class GenericCrowding {
     void Crossover(long,long);
     void Mutate(long);
     void Evaluate(long);
-    void (*UpdateBehavior) (long);
-    long (*ReplaceSelect) (long);
+    void RecordEvent(long,long,double,vector<double>);
+    void (GenericCrowding::*UpdateBehavior) (long);
+    double (*ReplaceDistance) (vector<double>&,vector<double>&);
+    long (GenericCrowding::*ReplaceSelect) (long);
     void Replace(long,long);
     double RandomWeight();
-    long HammingDistance(long,long);
+    //long HammingDistance(long,long);
     
     // Options for parent and replacement selection
     long CrowdingSelect(long);
@@ -74,7 +84,10 @@ class GenericCrowding {
     
     
 public:
-    GenericCrowding(Tartarus&, double (*) (vector<double>&,vector<double>&));
+    GenericCrowding(Tartarus&,
+                    std::string,
+                    std::string,
+                    std::string);
     void Next();
     double best_fitness();
     double avg_fitness();

@@ -17,7 +17,7 @@ namespace distances {
         
         long dist = 0;
         for (long i = 0; i < b1.size(); i++) {
-            if (std::abs(b1[i] - b2[i]) > 0.001) {
+            if (std::abs(b1[i] - b2[i]) > 0.1) {
                 dist++;
             }
         }

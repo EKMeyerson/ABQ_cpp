@@ -12,18 +12,60 @@
 #include "rutil.h"
 
 
-GenericCrowding::GenericCrowding(Tartarus &task, double (*distanceFunc) (vector<double>&,vector<double>&)) {
+GenericCrowding::GenericCrowding(Tartarus &task,
+                                 std::string replaceSelect,
+                                 std::string replaceBehavior,
+                                 std::string replaceDistance) {
     
     task_ = task;
-    ReplaceDist = distanceFunc;
     
+    // Load replace selection function
+    if (replaceSelect == "CrowdingSelect") {
+        ReplaceSelect = &GenericCrowding::CrowdingSelect;
+    } else if (replaceSelect == "RandomSelect") {
+        ReplaceSelect = &GenericCrowding::RandomSelect;
+    } else if (replaceSelect == "WorstSelect") {
+        ReplaceSelect = &GenericCrowding::WorstSelect;
+    } else {
+        throw std::invalid_argument( "Invalid replace select function." );
+    }
+    
+    // Load replace behavior function
+    if (replaceBehavior == "ActionHistoryBehavior") {
+        UpdateBehavior = &GenericCrowding::UpdateBehaviorActionHistory;
+    } else if (replaceBehavior == "FitnessBehavior") {
+        UpdateBehavior = &GenericCrowding::UpdateBehaviorFitness;
+    } else {
+        throw std::invalid_argument( "Invalid replace behavior function." );
+    }
+    
+    // Load replace distance function
+    if (replaceDistance == "Hamming") {
+        ReplaceDistance = distances::hamming;
+    } else if (replaceDistance == "Manhattan") {
+        ReplaceDistance = distances::manhattan;
+    } else if (replaceDistance == "Euclidean") {
+        ReplaceDistance = distances::euclidean;
+    } else {
+        throw std::invalid_argument( "Invalid replace distance function." );
+    }
+    
+
     num_iterations_ = 1000000;
     mutation_rate_ = 0.3;
     tournament_size_ = 10;
     population_size_ = 100;
     
-    genome_size_ = (24+1+10)*10;
-    action_history_size_ = 80*100;
+    num_actuators_ = 1;
+    num_sensors_ = 16;
+    
+    num_input_ = 16;
+    num_hidden_ = 2;
+    num_output_ = 3;
+    num_nodes_ = 1+num_input_+num_hidden_+num_output_;
+    
+    genome_size_ = (num_nodes_)*(num_hidden_+num_output_);
+    history_size_ = 80*100;
     
     curr_iteration_ = 0;
     
@@ -54,7 +96,12 @@ void GenericCrowding::InitPopulation() {
 void GenericCrowding::RandomIndividual(long i) {
     
     population_[i].genome.resize(genome_size_);
-    population_[i].action_history.resize(action_history_size_);
+    population_[i].history.resize(history_size_);
+    for (long a = 0; a < history_size_; a++) {
+        population_[i].history[a].resize(2);
+        population_[i].history[a][0].resize(num_sensors_);
+        population_[i].history[a][1].resize(num_sensors_);
+    }
     for (long g = 0; g < genome_size_; g++) {
         population_[i].genome[g] = RandomWeight();
     }
@@ -73,8 +120,8 @@ void GenericCrowding::Next() {
     Evaluate(childA_);
     Evaluate(childB_);
     //std::cout << "CrowdSelecting..\n";
-    long loserA = CrowdingSelect(childA_);
-    long loserB = CrowdingSelect(childB_);
+    long loserA = (this->*ReplaceSelect)(childA_);
+    long loserB = (this->*ReplaceSelect)(childB_);
     //std::cout << "Replacing..\n";
     Replace(loserA, childA_);
     Replace(loserB, childB_);
@@ -87,18 +134,21 @@ void GenericCrowding::Evaluate(long i) {
     task_.Reset();
     brain_.SetWeights(population_[i].genome);
     long action;
-    for (long a = 0; a < action_history_size_; a++) {
+    vector<double> sensors;
+    for (long a = 0; a < history_size_; a++) {
         if (a % 80 == 0) { brain_.Flush(); }
-        brain_.SetInput(task_.Sense());
+        sensors = task_.Sense();
+        brain_.SetInput(sensors);
         brain_.Step();
         action = brain_.GetAction();
         //std::cout << " Action: ";
         //std::cout << action;
         //std::cout << "\n";
         task_.Act(action);
-        population_[i].action_history[a] = action;
+        RecordEvent(i,a,double(action),sensors);
     }
     population_[i].fitness = task_.fitness();
+    (this->*UpdateBehavior)(i);
     //std::cout << task_.fitness();
     //std::cout << "\n";
 }
@@ -145,7 +195,7 @@ long GenericCrowding::CrowdingSelect(long child) {
     long loser = -1;
     for (long i = 0; i < tournament_size_; i++) {
         long j = rutil::pick_a_number(0, population_size_-1);
-        double dist = ReplaceDist(population_[child].action_history, population_[j].action_history);
+        double dist = ReplaceDistance(population_[child].behavior, population_[j].behavior);
         if (dist < min_distance) {
             min_distance = dist;
             loser = j;
@@ -154,6 +204,23 @@ long GenericCrowding::CrowdingSelect(long child) {
     //std::cout << "Loser: ";
     //std::cout << loser;
     //std::cout << "\n";
+    return loser;
+}
+
+long GenericCrowding::RandomSelect(long child) {
+    return rutil::pick_a_number(0, population_size_-1);
+}
+
+long GenericCrowding::WorstSelect(long child) {
+    
+    double min_fitness = MAX_FITNESS;
+    long loser = -1;
+    for (long i = 0; i < population_size_; i++) {
+        if (population_[i].fitness < min_fitness) {
+            min_fitness = population_[i].fitness;
+            loser = i;
+        }
+    }
     return loser;
 }
 
@@ -188,6 +255,20 @@ void GenericCrowding::Replace(long loser, long winner) {
     //std::cout << &population_[loser] << '\n' << &population_[winner] << '\n';
 }
 
+void GenericCrowding::RecordEvent(long i, long a, double action, vector<double> sensors) {
+    
+    //std::cout << '\n';
+    //std::cout << population_[i].history.size() << '\n';
+    //std::cout << population_[i].history[0].size() << '\n';
+    //std::cout << population_[i].history[a].size() << '\n';
+    //std::cout << population_[i].history[a][0].size() << '\n';
+    //std::cout << population_[i].history[a][0][0] << '\n';
+    population_[i].history[a][0][0] = action;
+    for (long j = 0; j < sensors.size(); j++) {
+        population_[i].history[a][1][j] = sensors[j];
+    }
+}
+
 double GenericCrowding::RandomWeight() {
     
     double weight = rutil::pick_a_number(-10.0, 10.0);//(dis_(gen_)*20)-10;
@@ -202,16 +283,44 @@ double GenericCrowding::best_fitness() { return best_fitness_; }
 
 double GenericCrowding::avg_fitness() { return total_fitness_ / population_size_; }
 
+void GenericCrowding::UpdateBehaviorActionHistory(long i) {
+    
+    if (population_[i].behavior.size() != history_size_) {
+        population_[i].behavior.resize(history_size_);
+    }
+    
+    for (long a = 0; a < history_size_; a++) {
+        //std::cout << '\n';
+        //std::cout << population_[i].history[a][0].size() << '\n';
+        //std::cout << population_[i].history[a][0][0] << '\n';
+        //std::cout << population_[i].behavior.size() << '\n';
+        population_[i].behavior[a] = population_[i].history[a][0][0];
+    }
+}
+
+void GenericCrowding::UpdateBehaviorFitness(long i) {
+    
+    if (population_[i].behavior.size() != 1) {
+        population_[i].behavior.push_back(population_[i].fitness);
+    } else {
+        population_[i].behavior[0] = population_[i].fitness;
+    }
+
+}
+
+
+/**
 long GenericCrowding::HammingDistance(long i, long j) {
     
     long dist = 0;
-    for (long a = 0; a < action_history_size_; a++) {
-        if (population_[i].action_history[a] != population_[j].action_history[a]) {
+    for (long a = 0; a < history_size_; a++) {
+        if (population_[i].history[a] != population_[j].history[a]) {
             dist++;
         }
     }
     return dist;
 }
+**/
 
 
 

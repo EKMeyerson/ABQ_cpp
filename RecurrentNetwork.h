@@ -14,7 +14,7 @@ using std::vector;
 
 class RecurrentNetwork {
     
-    int input_end_, output_start_, num_units_, num_nodes_;
+    long input_end_, output_start_, num_units_, num_nodes_;
     vector< vector<double> > weights_;
     vector<double> activation_;
     
@@ -22,7 +22,7 @@ public:
     RecurrentNetwork ();
     void SetWeights (const vector<double> &genome);
     void SetInput (const vector<double>&);
-    int GetAction ();
+    long GetAction ();
     void Step ();
     void Flush ();
 };
