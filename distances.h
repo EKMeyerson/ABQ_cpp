@@ -10,7 +10,6 @@
 
 using std::vector;
 
-
 namespace distances {
     
     double hamming (vector<double>&, vector<double>&);

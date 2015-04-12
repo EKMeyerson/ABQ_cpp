@@ -8,6 +8,7 @@
  */
 
 #include "Tartarus.h"
+#include <stdexcept>
 #include <iostream>
 #include "rutil.h"
 

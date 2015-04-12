@@ -8,6 +8,7 @@
  */
 
 #include "GenericCrowding.h"
+#include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -39,8 +40,8 @@ int main(int argc, const char * argv[]) {
     std::fstream outfile;
     
     for (int i = 0; i < 1000000; i++) {
-        if (i % 100 == 0) {
-            printf ("%d %f %f \n",i,ne.best_fitness(),ne.avg_fitness());
+        if (i % 1000 == 0) {
+            //printf ("%d %f %f \n",i,ne.best_fitness(),ne.avg_fitness());
             outfile.open(outfileName, std::fstream::app | std::fstream::out);
             outfile << i << ' ' << ne.best_fitness() << ' ' << ne.avg_fitness() << "\n";
             outfile.close();

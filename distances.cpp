@@ -10,7 +10,6 @@
 
 #include "distances.h"
 
-
 namespace distances {
     
     double hamming (vector<double> & b1, vector<double> & b2) {

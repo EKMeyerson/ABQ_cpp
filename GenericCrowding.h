@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include "RecurrentNetwork.h"
 #include "Tartarus.h"
+#include "rutil.h"
 #include "distances.h"
-//#include <random>
 
 using std::vector;
 

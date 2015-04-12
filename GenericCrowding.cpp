@@ -8,9 +8,8 @@
  */
 
 #include "GenericCrowding.h"
+#include <stdexcept>
 #include <iostream>
-#include "rutil.h"
-
 
 GenericCrowding::GenericCrowding(Tartarus &task,
                                  std::string replaceSelect,
